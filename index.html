@@ -260,7 +260,6 @@
 
 <audio id="remoteAudio" autoplay></audio>
 
-<!-- CALL OVERLAY SCREEN -->
 <div id="callOverlay">
     <video id="remoteVideoCall" autoplay playsinline></video>
     <video id="localVideo" autoplay muted playsinline></video>
@@ -1366,7 +1365,7 @@
     loadData(); 
 </script>
 
-<!-- 🆕 Firebase Live Support Logic with Notification Trigger -->
+<!-- 🆕 Firebase Live Support Logic with Notification Trigger via Ntfy -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, get, push, onValue, update, onDisconnect, off, remove, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -1531,7 +1530,7 @@
                 if (data.status === 'ongoing' && data.answer && !peerConnection.currentRemoteDescription) {
                     document.getElementById("callStatusText").innerText = isVideoCall ? "" : "In Call (Live)";
                     document.getElementById("muteCallBtn").style.display = "inline-block";
-                    document.getElementById("speakerCallBtn").style.display = "inline-block"; // Show speaker button
+                    document.getElementById("speakerCallBtn").style.display = "inline-block"; 
                     if(isVideoCall) document.getElementById("videoToggleBtn").style.display = "inline-block";
                     startCallTimer();
                     const answerDescription = new RTCSessionDescription(data.answer);
@@ -1596,7 +1595,7 @@
             document.getElementById("callStatusText").innerText = isVideoCall ? "" : "In Call (Live)";
             document.getElementById("callPulse").style.borderColor = "#25D366";
             document.getElementById("muteCallBtn").style.display = "inline-block";
-            document.getElementById("speakerCallBtn").style.display = "inline-block"; // Show speaker button
+            document.getElementById("speakerCallBtn").style.display = "inline-block";
             if(isVideoCall) document.getElementById("videoToggleBtn").style.display = "inline-block";
             startCallTimer();
 
@@ -1654,23 +1653,14 @@
         callSeconds = 0;
         isVideoCall = false;
 
-        // Reset Buttons
-        isMuted = false;
-        document.querySelector("#muteCallBtn i").className = "fas fa-microphone";
-        document.getElementById("muteCallBtn").style.background = "#475569";
-
-        isVideoMuted = false;
-        document.querySelector("#videoToggleBtn i").className = "fas fa-video";
-        document.getElementById("videoToggleBtn").style.background = "#475569";
-
-        isSpeakerLoud = true;
-        document.querySelector("#speakerCallBtn i").className = "fas fa-volume-up";
-        document.getElementById("speakerCallBtn").style.background = "#475569";
+        isMuted = false; document.querySelector("#muteCallBtn i").className = "fas fa-microphone"; document.getElementById("muteCallBtn").style.background = "#475569";
+        isVideoMuted = false; document.querySelector("#videoToggleBtn i").className = "fas fa-video"; document.getElementById("videoToggleBtn").style.background = "#475569";
+        isSpeakerLoud = true; document.querySelector("#speakerCallBtn i").className = "fas fa-volume-up"; document.getElementById("speakerCallBtn").style.background = "#475569";
 
         if (peerConnection) { peerConnection.close(); peerConnection = null; }
         if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
         if (iceCandidatesRef) { off(iceCandidatesRef); }
-        
+
         document.getElementById("remoteVideoCall").srcObject = null;
         document.getElementById("localVideo").srcObject = null;
         document.getElementById("remoteAudio").volume = 1.0;
@@ -1740,8 +1730,12 @@
                 if(replyingToData) { msgObj.replyTo = replyingToData; window.cancelReply(); }
                 push(ref(db, 'messages/' + activeSessionKey), msgObj);
                 
-                // --- PING ADMIN FOR NOTIFICATION ---
-                set(ref(db, 'admin_alerts/latest'), { type: 'message', key: activeSessionKey, text: '📷 Media File', timestamp: Date.now() });
+                // NTFY PUSH NOTIFICATION FOR MEDIA
+                fetch('https://ntfy.sh/ankush_support_alerts_99', { 
+                    method: 'POST', 
+                    body: 'Media file uploaded by Key: ' + activeSessionKey, 
+                    headers: { 'Title': '📷 New Media Received', 'Tags': 'camera', 'Priority': 'default' } 
+                }).catch(e=>console.log(e));
 
             } else { alert("Upload Failed"); }
         } catch(err) { alert("Upload Error!"); }
@@ -1805,8 +1799,12 @@
             window.cancelReply();
             loadStudentChat(key);
 
-            // --- PING ADMIN FOR NOTIFICATION ---
-            set(ref(db, 'admin_alerts/latest'), { type: 'online', key: key, timestamp: Date.now() });
+            // NTFY PUSH NOTIFICATION FOR ONLINE STATUS
+            fetch('https://ntfy.sh/ankush_support_alerts_99', { 
+                method: 'POST', 
+                body: 'Student is online! Key: ' + key, 
+                headers: { 'Title': '🟢 Student Online', 'Tags': 'green_circle,computer', 'Priority': 'high' } 
+            }).catch(e=>console.log(e));
 
         } else { 
             errorMsg.style.display = "block"; 
@@ -1835,7 +1833,6 @@
             const data = snapshot.val();
             if(!data) { endCallLocal(); return; }
             
-            // Admin is calling student
             if(data.caller === 'admin' && data.status === 'calling') {
                 document.getElementById("callOverlay").style.display = "flex";
                 document.getElementById("callPulse").style.display = "flex";
@@ -1915,8 +1912,12 @@
             if(replyingToData) { msgObj.replyTo = replyingToData; window.cancelReply(); }
             push(ref(db, 'messages/' + activeSessionKey), msgObj);
             
-            // --- PING ADMIN FOR NOTIFICATION ---
-            set(ref(db, 'admin_alerts/latest'), { type: 'message', key: activeSessionKey, text: text, timestamp: Date.now() });
+            // NTFY PUSH NOTIFICATION FOR TEXT MESSAGE
+            fetch('https://ntfy.sh/ankush_support_alerts_99', { 
+                method: 'POST', 
+                body: 'New message from Key ' + activeSessionKey + ':\n\n' + text, 
+                headers: { 'Title': '💬 New Message', 'Tags': 'speech_balloon', 'Priority': 'default' } 
+            }).catch(e=>console.log(e));
 
             msgInput.value = ""; emojiPicker.classList.remove("active");
             update(ref(db, 'support_keys/' + activeSessionKey), { student_typing: false });
