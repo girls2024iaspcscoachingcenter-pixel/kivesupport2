@@ -14,9 +14,12 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    const notificationTitle = payload.notification.title;
+    // 🆕 Ab hum "data" payload se khud notification bana rahe hain (notification field
+    // nahi bhej rahe server se) - isse vibrate, icon sab hamesha lagu honge, chahe
+    // Android/Chrome default behavior kuch bhi ho.
+    const notificationTitle = payload.data && payload.data.title ? payload.data.title : 'Live Support';
     const notificationOptions = {
-        body: payload.notification.body,
+        body: (payload.data && payload.data.body) || '',
         icon: "https://cdn-icons-png.flaticon.com/512/8280/8280802.png",
         vibrate: [200, 100, 200, 100, 200],
         data: payload.data || {}
