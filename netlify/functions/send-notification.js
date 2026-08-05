@@ -50,10 +50,14 @@ exports.handler = async function (event) {
     }
 
     const title = type === 'new_session'
-      ? `🆕 Naya Student (Key: ${key})`
-      : `💬 New Message (Key: ${key})`;
+      ? `🟢 ${key}`
+      : `💬 ${key}`;
 
-    const body = message && message.trim() ? message : 'Student ne chat shuru ki hai';
+    // 🆕 Privacy: message ka actual content kabhi notification me nahi dikhाya jayega,
+    // sirf key aur generic status dikhega
+    const body = type === 'new_session'
+      ? 'is live now'
+      : 'New Update';
 
     // 🆕 Sirf "data" bhej rahe hain (notification field nahi) - isse Chrome/Android
     // apni marzi se notification nahi dikhayega, hamara service worker khud
