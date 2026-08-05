@@ -165,16 +165,12 @@
 
         /* ===== AUDIO / VIDEO CALL OVERLAY CSS ===== */
         #callOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 9999; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        
-        /* Video Elements - Instagram Style */
         #remoteVideoCall { display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         #localVideo { display: none; width: 110px; height: 160px; object-fit: cover; position: absolute; bottom: 120px; right: 20px; z-index: 2; border-radius: 12px; border: 2px solid white; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
-        
         .call-box { text-align: center; color: white; display: flex; flex-direction: column; align-items: center; z-index: 3; transition: all 0.3s ease; }
         .pulse-ring { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #1e293b; position: relative; margin-bottom: 20px; border: 4px solid #334155;}
         .pulse-ring::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #25D366; animation: pulse 1.5s infinite; z-index: -1; opacity: 0.6; }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0; } }
-        
         .call-buttons { display: flex; gap: 15px; margin-top: 30px; align-items: center; justify-content: center; flex-wrap: wrap; }
         .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; color: white; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
         .call-btn:hover { transform: scale(1.08); }
@@ -217,7 +213,7 @@
         }
 
         /* Message Bubble & Control Styles */
-        .chat-bubble { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; line-height: 1.3; position: relative; }
+        .chat-bubble { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; line-height: 1.3; position: relative; word-wrap: break-word;}
         .chat-bubble.admin { background: #334155; color: white; align-self: flex-start; border-bottom-left-radius: 0; }
         .chat-bubble.student { background: #075E54; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
         .bubble-time { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 0.65rem; color: #cbd5e1; margin-top: 3px; }
@@ -262,14 +258,11 @@
 </head>
 <body>
 
-<!-- Hidden Audio Player for purely Audio Calls -->
 <audio id="remoteAudio" autoplay></audio>
 
-<!-- CALL OVERLAY SCREEN (Supports Audio & HD Video) -->
+<!-- CALL OVERLAY SCREEN -->
 <div id="callOverlay">
-    <!-- Remote Video (Full Screen) -->
     <video id="remoteVideoCall" autoplay playsinline></video>
-    <!-- Local Video (Selfie - Picture in Picture) -->
     <video id="localVideo" autoplay muted playsinline></video>
 
     <div class="call-box" id="callBoxUI">
@@ -281,9 +274,7 @@
             <button class="call-btn btn-accept" id="acceptCallBtn"><i class="fas fa-phone"></i></button>
             <button class="call-btn" id="muteCallBtn" style="display: none; background: #475569;" title="Mute Microphone"><i class="fas fa-microphone"></i></button>
             <button class="call-btn" id="videoToggleBtn" style="display: none; background: #475569;" title="Turn off Video"><i class="fas fa-video"></i></button>
-            <!-- SPEAKER BUTTON ADDED HERE -->
             <button class="call-btn" id="speakerCallBtn" style="display: none; background: #475569;" title="Toggle Speaker"><i class="fas fa-volume-up"></i></button>
-            
             <button class="call-btn btn-reject" id="endCallBtn" title="End Call"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
@@ -515,11 +506,8 @@
             <h4><i class="fas fa-headset"></i> Live Support</h4>
             <div style="display: flex; gap: 12px; align-items: center;">
                 <span id="lsHeaderIcons" style="display:none; gap:12px; align-items:center;">
-                    <!-- STUDENT VIDEO CALL BUTTON -->
                     <i class="fas fa-video ls-action-icon video" id="studentVideoCallBtn" title="Video Call"></i>
-                    <!-- STUDENT AUDIO CALL BUTTON -->
                     <i class="fas fa-phone-alt ls-action-icon call" id="studentCallBtn" title="Voice Call"></i>
-                    
                     <i class="fas fa-camera ls-action-icon" id="studentHeaderCameraBtn" title="Direct Camera"></i>
                     <input type="file" id="studentCameraInput" accept="image/*" capture style="display: none;">
                     <i class="fas fa-trash-alt ls-action-icon danger" id="studentClearChatBtn" title="Clear Chat for Both"></i>
@@ -532,9 +520,7 @@
     
     <div class="ls-panel-body" id="lsKeyEntryArea">
         <p style="color: #94a3b8; font-size: 0.85rem; text-align: center; margin-bottom: 15px;">Enter your 6-digit access key provided by Admin to start secure chat.</p>
-        
         <input type="text" id="studentKeyInput" placeholder="Enter 6-digit key" autocomplete="off" autocorrect="off" spellcheck="false" inputmode="numeric" style="width: 100%; padding: 12px; background: #334155; border: none; border-radius: 8px; color: white; text-align: center; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 15px; outline: none;" maxlength="6">
-        
         <button id="verifyKeyBtn" style="width: 100%; padding: 12px; background: #25D366; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;">Start Chat</button>
         <p id="keyErrorMsg" style="color: #ef4444; font-size: 0.8rem; text-align: center; margin-top: 10px; display: none;">Invalid Key! Check again.</p>
     </div>
@@ -544,24 +530,18 @@
         <div id="studentChatMessages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #0f172a;">
             <!-- Realtime messages load here -->
         </div>
-        
         <div class="ls-emoji-picker" id="studentEmojiPicker"></div>
-
         <!-- Chat Bottom Wrap -->
         <div style="display: flex; flex-direction: column; background: #1e293b; border-top: 1px solid #334155;">
-            
             <div id="replyPreviewBox">
                 <div id="replyPreviewName">Replying to...</div>
                 <div id="replyPreviewText"></div>
                 <i class="fas fa-times cancel-reply-btn" onclick="window.cancelReply()"></i>
             </div>
-            
             <div style="display: flex; gap: 8px; padding: 10px; align-items: center;">
                 <button class="ls-emoji-btn" id="studentEmojiBtn"><i class="far fa-smile"></i></button>
                 <button class="ls-emoji-btn" id="studentAttachBtn" title="Send Media/File"><i class="fas fa-paperclip"></i></button>
-                
                 <input type="file" id="studentFileInput" accept="image/*,video/*,audio/*" style="display: none;">
-                
                 <input type="text" id="studentMsgInput" placeholder="Type a message..." autocomplete="off" style="flex: 1; padding: 10px 15px; border-radius: 20px; border: none; background: #334155; color: white; outline: none;">
                 <button id="studentSendBtn" style="background: #25D366; border: none; width: 40px; height: 40px; border-radius: 50%; color: white; cursor: pointer; flex-shrink: 0;"><i class="fas fa-paper-plane"></i></button>
             </div>
@@ -571,9 +551,7 @@
 
 <script>
     if (window.location.hash) history.replaceState(null, null, window.location.pathname);
-
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyE6NajCOnS0lZA-1ITRi72wL4eJjSetMr_zcOCsoijO4CNHWEHRq0TUg0H46oR0avBQQ/exec"; 
-    
     const ENCODED_ID = "ODI3MzY4NDkzOQ=="; 
     const ENCODED_PW = "QW5rdXNoQDEyMzFAMTIz"; 
     
@@ -741,15 +719,8 @@
         }, 30); 
     }
 
-    function handleUserInteraction() {
-        isUserScrolling = true;
-        clearTimeout(resumeScrollTimeout);
-    }
-
-    function handleUserInteractionEnd() {
-        clearTimeout(resumeScrollTimeout);
-        resumeScrollTimeout = setTimeout(() => { isUserScrolling = false; }, 4000); 
-    }
+    function handleUserInteraction() { isUserScrolling = true; clearTimeout(resumeScrollTimeout); }
+    function handleUserInteractionEnd() { clearTimeout(resumeScrollTimeout); resumeScrollTimeout = setTimeout(() => { isUserScrolling = false; }, 4000); }
 
     compactListEl.addEventListener("touchstart", handleUserInteraction);
     compactListEl.addEventListener("mousedown", handleUserInteraction);
@@ -763,13 +734,9 @@
     document.getElementById("togglePasswordEye").addEventListener("click", function() {
         let input = document.getElementById("folderPasswordInput");
         if (input.type === "password") {
-            input.type = "text";
-            this.classList.remove("fa-eye");
-            this.classList.add("fa-eye-slash");
+            input.type = "text"; this.classList.remove("fa-eye"); this.classList.add("fa-eye-slash");
         } else {
-            input.type = "password";
-            this.classList.remove("fa-eye-slash");
-            this.classList.add("fa-eye");
+            input.type = "password"; this.classList.remove("fa-eye-slash"); this.classList.add("fa-eye");
         }
     });
 
@@ -824,10 +791,7 @@
                     let localClearedTime = parseInt(localStorage.getItem('clearedNotifsTime') || "0");
                     let localSeenTime = parseInt(localStorage.getItem('seenNotifsTime') || "0");
                     let timeToCompare = Math.max(localClearedTime, localSeenTime);
-                    
-                    if (latestStored.timestamp > timeToCompare) {
-                        isNewUpdate = true;
-                    }
+                    if (latestStored.timestamp > timeToCompare) { isNewUpdate = true; }
                 }
             } else if (storedData.notifications && storedData.notifications.length > 0 && (!appData.notifications || appData.notifications.length === 0)) {
                 isNewUpdate = true;
@@ -916,24 +880,12 @@
         if (!key) return "linear-gradient(135deg, #1e3c72, #2a5298)"; 
         
         const gradientList = [
-            "linear-gradient(135deg, #1e3c72, #2a5298)", 
-            "linear-gradient(135deg, #0f5c3f, #1e8f5e)", 
-            "linear-gradient(135deg, #b85c00, #f39c12)", 
-            "linear-gradient(135deg, #6a1b9a, #9c27b0)", 
-            "linear-gradient(135deg, #b71c1c, #f44336)", 
-            "linear-gradient(135deg, #00c6ff, #0072ff)", 
-            "linear-gradient(135deg, #10b981, #047857)", 
-            "linear-gradient(135deg, #c2185b, #e91e63)", 
-            "linear-gradient(135deg, #6366f1, #4338ca)", 
-            "linear-gradient(135deg, #f59e0b, #d97706)", 
-            "linear-gradient(135deg, #06b6d4, #0891b2)", 
-            "linear-gradient(135deg, #8b5cf6, #6d28d9)", 
-            "linear-gradient(135deg, #ec4899, #be185d)", 
-            "linear-gradient(135deg, #84cc16, #4d7c0f)", 
-            "linear-gradient(135deg, #14b8a6, #0f766e)", 
-            "linear-gradient(135deg, #eab308, #ca8a04)", 
-            "linear-gradient(135deg, #f43f5e, #e11d48)", 
-            "linear-gradient(135deg, #3b82f6, #1d4ed8)", 
+            "linear-gradient(135deg, #1e3c72, #2a5298)", "linear-gradient(135deg, #0f5c3f, #1e8f5e)", "linear-gradient(135deg, #b85c00, #f39c12)", 
+            "linear-gradient(135deg, #6a1b9a, #9c27b0)", "linear-gradient(135deg, #b71c1c, #f44336)", "linear-gradient(135deg, #00c6ff, #0072ff)", 
+            "linear-gradient(135deg, #10b981, #047857)", "linear-gradient(135deg, #c2185b, #e91e63)", "linear-gradient(135deg, #6366f1, #4338ca)", 
+            "linear-gradient(135deg, #f59e0b, #d97706)", "linear-gradient(135deg, #06b6d4, #0891b2)", "linear-gradient(135deg, #8b5cf6, #6d28d9)", 
+            "linear-gradient(135deg, #ec4899, #be185d)", "linear-gradient(135deg, #84cc16, #4d7c0f)", "linear-gradient(135deg, #14b8a6, #0f766e)", 
+            "linear-gradient(135deg, #eab308, #ca8a04)", "linear-gradient(135deg, #f43f5e, #e11d48)", "linear-gradient(135deg, #3b82f6, #1d4ed8)", 
             "linear-gradient(135deg, #ea580c, #c2410c)"  
         ];
 
@@ -1414,7 +1366,7 @@
     loadData(); 
 </script>
 
-<!-- 🆕 Firebase Live Support Logic with WebRTC Video Calling, Speaker, Mute, Reply, Delete & Media -->
+<!-- 🆕 Firebase Live Support Logic with Notification Trigger -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, get, push, onValue, update, onDisconnect, off, remove, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -1454,7 +1406,7 @@
     let isMuted = false;
     let isVideoCall = false;
     let isVideoMuted = false;
-    let isSpeakerLoud = true; // NEW: Speaker State
+    let isSpeakerLoud = true; 
 
     const pcConfig = {
         iceServers: [
@@ -1515,7 +1467,6 @@
         }
     });
 
-    // --- LOUDSPEAKER LOGIC ---
     document.getElementById("speakerCallBtn").addEventListener("click", () => {
         isSpeakerLoud = !isSpeakerLoud;
         const remoteVid = document.getElementById("remoteVideoCall");
@@ -1525,17 +1476,13 @@
         if(isSpeakerLoud) {
             speakerIcon.className = "fas fa-volume-up";
             document.getElementById("speakerCallBtn").style.background = "#475569";
-            remoteVid.volume = 1.0;
-            remoteAud.volume = 1.0;
+            remoteVid.volume = 1.0; remoteAud.volume = 1.0;
         } else {
             speakerIcon.className = "fas fa-volume-down";
             document.getElementById("speakerCallBtn").style.background = "#ef4444";
-            // Reduce volume to simulate earpiece on mobile web
-            remoteVid.volume = 0.15; 
-            remoteAud.volume = 0.15;
+            remoteVid.volume = 0.15; remoteAud.volume = 0.15;
         }
     });
-
 
     // --- WEBRTC CALL LOGIC START ---
     document.getElementById("studentCallBtn").addEventListener("click", () => { if(activeSessionKey) initiateCall('audio'); });
@@ -1723,7 +1670,7 @@
         if (peerConnection) { peerConnection.close(); peerConnection = null; }
         if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
         if (iceCandidatesRef) { off(iceCandidatesRef); }
-
+        
         document.getElementById("remoteVideoCall").srcObject = null;
         document.getElementById("localVideo").srcObject = null;
         document.getElementById("remoteAudio").volume = 1.0;
@@ -1792,6 +1739,10 @@
                 let msgObj = { sender: 'student', text: "", fileUrl: result.secure_url, fileType: file.type, timestamp: Date.now(), status: 'sent' };
                 if(replyingToData) { msgObj.replyTo = replyingToData; window.cancelReply(); }
                 push(ref(db, 'messages/' + activeSessionKey), msgObj);
+                
+                // --- PING ADMIN FOR NOTIFICATION ---
+                set(ref(db, 'admin_alerts/latest'), { type: 'message', key: activeSessionKey, text: '📷 Media File', timestamp: Date.now() });
+
             } else { alert("Upload Failed"); }
         } catch(err) { alert("Upload Error!"); }
         
@@ -1853,6 +1804,10 @@
             document.getElementById("lsHeaderIcons").style.display = "flex"; 
             window.cancelReply();
             loadStudentChat(key);
+
+            // --- PING ADMIN FOR NOTIFICATION ---
+            set(ref(db, 'admin_alerts/latest'), { type: 'online', key: key, timestamp: Date.now() });
+
         } else { 
             errorMsg.style.display = "block"; 
             document.getElementById("studentKeyInput").value = ""; 
@@ -1880,6 +1835,7 @@
             const data = snapshot.val();
             if(!data) { endCallLocal(); return; }
             
+            // Admin is calling student
             if(data.caller === 'admin' && data.status === 'calling') {
                 document.getElementById("callOverlay").style.display = "flex";
                 document.getElementById("callPulse").style.display = "flex";
@@ -1958,6 +1914,10 @@
             let msgObj = { sender: 'student', text: text, timestamp: Date.now(), status: 'sent' };
             if(replyingToData) { msgObj.replyTo = replyingToData; window.cancelReply(); }
             push(ref(db, 'messages/' + activeSessionKey), msgObj);
+            
+            // --- PING ADMIN FOR NOTIFICATION ---
+            set(ref(db, 'admin_alerts/latest'), { type: 'message', key: activeSessionKey, text: text, timestamp: Date.now() });
+
             msgInput.value = ""; emojiPicker.classList.remove("active");
             update(ref(db, 'support_keys/' + activeSessionKey), { student_typing: false });
             setTimeout(() => { isSending = false; }, 300);
