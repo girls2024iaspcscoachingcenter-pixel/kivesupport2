@@ -53,11 +53,7 @@
     @media (max-width: 768px) {
         .workspace { display: block; overflow: hidden; }
         .sidebar { width: 100%; height: 100%; }
-        .chat-area { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            z-index: 10; 
-        }
+        .chat-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 10; }
         .chat-area.active-mobile { transform: translateX(0); }
         #mobileBackBtn { display: inline-block; }
     }
@@ -185,9 +181,8 @@
             <div class="chat-header" id="chatHeader">
                 <div class="chat-header-info">
                     <div class="chat-header-title">
-                        <!-- MOBILE BACK BUTTON -->
                         <i class="fas fa-arrow-left" id="mobileBackBtn"></i>
-                        <span id="chatTitleText"><i class="fas fa-comments"></i> Select a key to start chat</span>
+                        <span id="chatTitleText"><i class="fas fa-comments"></i> Select a key</span>
                     </div>
                     <div class="chat-status-bar" id="studentStatus"></div>
                 </div>
@@ -230,6 +225,16 @@
 </div>
 
 <script type="module">
+    // --- MISSING PIECE ADDED: REGISTER SERVICE WORKER ---
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./firebase-messaging-sw.js')
+        .then((registration) => {
+            console.log('Service Worker Registered Successfully!', registration);
+        }).catch((err) => {
+            console.log('Service Worker Registration Failed!', err);
+        });
+    }
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, set, push, onValue, serverTimestamp, update, onDisconnect, off, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js"; 
@@ -293,13 +298,12 @@
         } catch(err) { console.log('Notification Err:', err); }
     }
 
-    // --- BACKGROUND / LOCAL NOTIFICATION LISTENER (Optimized for Android) ---
+    // --- BACKGROUND / LOCAL NOTIFICATION LISTENER ---
     let initAlert = true;
     onValue(ref(db, 'admin_alerts/latest'), (snapshot) => {
         if(initAlert) { initAlert = false; return; }
         const data = snapshot.val();
         
-        // Agar app minimize hai ya screen active nahi hai, tabhi bajega
         if(data && (document.hidden || !document.hasFocus())) {
             let title = data.type === 'online' ? `Student Online (Key: ${data.key})` : `New Message (Key: ${data.key})`;
             let body = data.type === 'online' ? "Student ne chat open ki hai." : (data.text || "Media file received.");
@@ -697,7 +701,7 @@
         if(currentKey) { update(ref(db, 'support_keys/' + currentKey), { admin_status: 'offline', admin_typing: false }); }
 
         currentKey = key;
-        document.getElementById("chatTitleText").innerHTML = `<span>Key: ${key}</span>`;
+        document.getElementById("chatTitleText").innerHTML = `<span><i class="fas fa-hashtag"></i> Key: ${key}</span>`;
         document.getElementById("chatBottomWrapper").style.display = "flex";
         document.getElementById("chatInputArea").style.display = "flex";
         document.getElementById("headerActionsBlock").style.display = "flex";
