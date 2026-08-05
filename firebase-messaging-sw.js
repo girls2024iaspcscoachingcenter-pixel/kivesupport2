@@ -17,7 +17,29 @@ messaging.onBackgroundMessage((payload) => {
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        icon: "https://cdn-icons-png.flaticon.com/512/8280/8280802.png"
+        icon: "https://cdn-icons-png.flaticon.com/512/8280/8280802.png",
+        vibrate: [200, 100, 200, 100, 200],
+        data: payload.data || {}
     };
     self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+// 🆕 Notification pe tap karne se seedhे admin dashboard (us student ki conversation) khulegi
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+    const key = event.notification.data && event.notification.data.key;
+    const targetUrl = key ? `./admin.html?key=${key}` : './admin.html';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            for (const client of clientList) {
+                if (client.url.includes('admin.html') && 'focus' in client) {
+                    client.focus();
+                    client.navigate(targetUrl);
+                    return;
+                }
+            }
+            if (clients.openWindow) return clients.openWindow(targetUrl);
+        })
+    );
 });
