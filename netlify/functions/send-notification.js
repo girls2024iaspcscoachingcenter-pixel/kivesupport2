@@ -34,7 +34,15 @@ exports.handler = async function (event) {
     const tokensObj = tokensSnap.val() || {};
     const tokenEntries = Object.entries(tokensObj); // [ [pushId, token], ... ]
 
-    if (tokenEntries.length === 0) {
+    // 🆕 Duplicate tokens (agar purane data me ban gaye the) sirf ek baar bhejenge
+    const seen = new Set();
+    const uniqueTokenEntries = tokenEntries.filter(([, token]) => {
+      if (seen.has(token)) return false;
+      seen.add(token);
+      return true;
+    });
+
+    if (uniqueTokenEntries.length === 0) {
       return {
         statusCode: 200,
         body: JSON.stringify({ sent: 0, note: 'Abhi koi admin device registered nahi hai (notification permission allow nahi hui)' })
@@ -47,13 +55,17 @@ exports.handler = async function (event) {
 
     const body = message && message.trim() ? message : 'Student ne chat shuru ki hai';
 
+    // 🆕 Sirf "data" bhej rahe hain (notification field nahi) - isse Chrome/Android
+    // apni marzi se notification nahi dikhayega, hamara service worker khud
+    // poori notification banayega (icon, vibrate, click-action sab control me rahega)
     const messagePayload = {
-      notification: { title, body },
       data: {
+        title,
+        body,
         key: String(key),
         click_action: `/admin.html?key=${key}`
       },
-      tokens: tokenEntries.map(([, token]) => token)
+      tokens: uniqueTokenEntries.map(([, token]) => token)
     };
 
     const response = await admin.messaging().sendEachForMulticast(messagePayload);
@@ -62,7 +74,7 @@ exports.handler = async function (event) {
     const removals = [];
     response.responses.forEach((res, idx) => {
       if (!res.success) {
-        const [pushId] = tokenEntries[idx];
+        const [pushId] = uniqueTokenEntries[idx];
         removals.push(db.ref('admin_settings/fcm_tokens/' + pushId).remove());
       }
     });
