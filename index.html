@@ -1365,7 +1365,7 @@
     loadData(); 
 </script>
 
-<!-- 🆕 Firebase Live Support Logic with Notification Trigger via Ntfy -->
+<!-- 🆕 Firebase Live Support Logic with FCM Push Notification Trigger -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getDatabase, ref, get, push, onValue, update, onDisconnect, off, remove, set } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
@@ -1730,12 +1730,12 @@
                 if(replyingToData) { msgObj.replyTo = replyingToData; window.cancelReply(); }
                 push(ref(db, 'messages/' + activeSessionKey), msgObj);
                 
-                // NTFY PUSH NOTIFICATION FOR MEDIA
-                fetch('https://ntfy.sh/ankush_support_alerts_99', { 
-                    method: 'POST', 
-                    body: 'Media file uploaded by Key: ' + activeSessionKey, 
-                    headers: { 'Title': '📷 New Media Received', 'Tags': 'camera', 'Priority': 'default' } 
-                }).catch(e=>console.log(e));
+                // 🆕 FCM Push Notification - Media file
+                fetch('/.netlify/functions/send-notification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: activeSessionKey, message: '📷 Media file bheji gayi hai', type: 'message' })
+                }).catch(e => console.log(e));
 
             } else { alert("Upload Failed"); }
         } catch(err) { alert("Upload Error!"); }
@@ -1799,12 +1799,12 @@
             window.cancelReply();
             loadStudentChat(key);
 
-            // NTFY PUSH NOTIFICATION FOR ONLINE STATUS
-            fetch('https://ntfy.sh/ankush_support_alerts_99', { 
-                method: 'POST', 
-                body: 'Student is online! Key: ' + key, 
-                headers: { 'Title': '🟢 Student Online', 'Tags': 'green_circle,computer', 'Priority': 'high' } 
-            }).catch(e=>console.log(e));
+            // 🆕 FCM Push Notification - Naya student connect hua (chat start)
+            fetch('/.netlify/functions/send-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: key, message: 'Student ne chat shuru ki hai', type: 'new_session' })
+            }).catch(e => console.log(e));
 
         } else { 
             errorMsg.style.display = "block"; 
@@ -1912,12 +1912,12 @@
             if(replyingToData) { msgObj.replyTo = replyingToData; window.cancelReply(); }
             push(ref(db, 'messages/' + activeSessionKey), msgObj);
             
-            // NTFY PUSH NOTIFICATION FOR TEXT MESSAGE
-            fetch('https://ntfy.sh/ankush_support_alerts_99', { 
-                method: 'POST', 
-                body: 'New message from Key ' + activeSessionKey + ':\n\n' + text, 
-                headers: { 'Title': '💬 New Message', 'Tags': 'speech_balloon', 'Priority': 'default' } 
-            }).catch(e=>console.log(e));
+            // 🆕 FCM Push Notification - Text message
+            fetch('/.netlify/functions/send-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: activeSessionKey, message: text, type: 'message' })
+            }).catch(e => console.log(e));
 
             msgInput.value = ""; emojiPicker.classList.remove("active");
             update(ref(db, 'support_keys/' + activeSessionKey), { student_typing: false });
