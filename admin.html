@@ -119,8 +119,8 @@
     .pulse-ring::before { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: #25D366; animation: pulse 1.5s infinite; z-index: -1; opacity: 0.6; }
     @keyframes pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0; } }
     
-    .call-buttons { display: flex; gap: 20px; margin-top: 30px; align-items: center; justify-content: center; }
-    .call-btn { width: 65px; height: 65px; border-radius: 50%; border: none; color: white; font-size: 1.6rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
+    .call-buttons { display: flex; gap: 15px; margin-top: 30px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .call-btn { width: 60px; height: 60px; border-radius: 50%; border: none; color: white; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.3);}
     .call-btn:hover { transform: scale(1.08); }
     .btn-accept { background: #25D366; display: none; }
     .btn-reject { background: #ef4444; }
@@ -145,6 +145,9 @@
             <button class="call-btn btn-accept" id="acceptCallBtn"><i class="fas fa-phone"></i></button>
             <button class="call-btn" id="muteCallBtn" style="display: none; background: #475569;" title="Mute Microphone"><i class="fas fa-microphone"></i></button>
             <button class="call-btn" id="videoToggleBtn" style="display: none; background: #475569;" title="Turn off Video"><i class="fas fa-video"></i></button>
+            <!-- SPEAKER BUTTON ADDED -->
+            <button class="call-btn" id="speakerCallBtn" style="display: none; background: #475569;" title="Toggle Speaker"><i class="fas fa-volume-up"></i></button>
+            
             <button class="call-btn btn-reject" id="endCallBtn" title="End Call"><i class="fas fa-phone-slash"></i></button>
         </div>
     </div>
@@ -183,9 +186,7 @@
                 </div>
                 
                 <div class="header-actions" id="headerActionsBlock">
-                    <!-- VIDEO CALL BUTTON -->
                     <button class="header-action-btn video" id="adminVideoCallBtn" title="Video Call"><i class="fas fa-video"></i></button>
-                    <!-- AUDIO CALL BUTTON -->
                     <button class="header-action-btn call" id="adminCallBtn" title="Voice Call"><i class="fas fa-phone-alt"></i></button>
                     
                     <button class="header-action-btn" id="adminHeaderCameraBtn" title="Direct Camera"><i class="fas fa-camera"></i></button>
@@ -258,9 +259,11 @@
     let iceCandidatesRef = null;
     let callTimerInterval;
     let callSeconds = 0;
+    
     let isMuted = false;
     let isVideoCall = false;
     let isVideoMuted = false;
+    let isSpeakerLoud = true; // NEW: Speaker State
 
     const pcConfig = {
         iceServers: [
@@ -321,6 +324,28 @@
         }
     });
 
+    // --- LOUDSPEAKER LOGIC ---
+    document.getElementById("speakerCallBtn").addEventListener("click", () => {
+        isSpeakerLoud = !isSpeakerLoud;
+        const remoteVid = document.getElementById("remoteVideoCall");
+        const remoteAud = document.getElementById("remoteAudio");
+        const speakerIcon = document.querySelector("#speakerCallBtn i");
+
+        if(isSpeakerLoud) {
+            speakerIcon.className = "fas fa-volume-up";
+            document.getElementById("speakerCallBtn").style.background = "#475569";
+            remoteVid.volume = 1.0;
+            remoteAud.volume = 1.0;
+        } else {
+            speakerIcon.className = "fas fa-volume-down";
+            document.getElementById("speakerCallBtn").style.background = "#ef4444";
+            // Mobile par earpiece simulate karne ke liye volume 15% kar di hai
+            remoteVid.volume = 0.15; 
+            remoteAud.volume = 0.15;
+        }
+    });
+
+
     // --- WEBRTC CALL LOGIC START ---
     document.getElementById("adminCallBtn").addEventListener("click", () => { if(currentKey) initiateCall('audio'); });
     document.getElementById("adminVideoCallBtn").addEventListener("click", () => { if(currentKey) initiateCall('video'); });
@@ -368,6 +393,7 @@
                 if (data.status === 'ongoing' && data.answer && !peerConnection.currentRemoteDescription) {
                     document.getElementById("callStatusText").innerText = isVideoCall ? "" : "In Call (Live)";
                     document.getElementById("muteCallBtn").style.display = "inline-block"; 
+                    document.getElementById("speakerCallBtn").style.display = "inline-block"; // Show speaker button
                     if(isVideoCall) document.getElementById("videoToggleBtn").style.display = "inline-block";
                     startCallTimer();
                     const answerDescription = new RTCSessionDescription(data.answer);
@@ -432,6 +458,7 @@
             document.getElementById("callStatusText").innerText = isVideoCall ? "" : "In Call (Live)";
             document.getElementById("callPulse").style.borderColor = "#25D366";
             document.getElementById("muteCallBtn").style.display = "inline-block";
+            document.getElementById("speakerCallBtn").style.display = "inline-block"; // Show speaker button
             if(isVideoCall) document.getElementById("videoToggleBtn").style.display = "inline-block";
             startCallTimer();
 
@@ -455,6 +482,7 @@
         document.getElementById("acceptCallBtn").style.display = "none"; 
         document.getElementById("muteCallBtn").style.display = "none"; 
         document.getElementById("videoToggleBtn").style.display = "none";
+        document.getElementById("speakerCallBtn").style.display = "none";
         document.getElementById("callTimer").style.display = "none";
         
         if (isVideo) {
@@ -479,6 +507,7 @@
         document.getElementById("callOverlay").style.display = "none";
         document.getElementById("muteCallBtn").style.display = "none";
         document.getElementById("videoToggleBtn").style.display = "none";
+        document.getElementById("speakerCallBtn").style.display = "none";
         document.getElementById("remoteVideoCall").style.display = "none";
         document.getElementById("localVideo").style.display = "none";
         
@@ -496,12 +525,18 @@
         document.querySelector("#videoToggleBtn i").className = "fas fa-video";
         document.getElementById("videoToggleBtn").style.background = "#475569";
 
+        isSpeakerLoud = true;
+        document.querySelector("#speakerCallBtn i").className = "fas fa-volume-up";
+        document.getElementById("speakerCallBtn").style.background = "#475569";
+
         if (peerConnection) { peerConnection.close(); peerConnection = null; }
         if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
         if (iceCandidatesRef) { off(iceCandidatesRef); }
         
         document.getElementById("remoteVideoCall").srcObject = null;
         document.getElementById("localVideo").srcObject = null;
+        document.getElementById("remoteAudio").volume = 1.0;
+        document.getElementById("remoteVideoCall").volume = 1.0;
     }
 
     function startCallTimer() {
@@ -640,7 +675,6 @@
         onValue(callStateRef, (snapshot) => {
             const data = snapshot.val();
             if(!data) { endCallLocal(); return; }
-            // If student is calling admin
             if(data.caller === 'student' && data.status === 'calling') {
                 document.getElementById("callOverlay").style.display = "flex";
                 document.getElementById("callPulse").style.display = "flex";
@@ -648,6 +682,10 @@
                 document.getElementById("callStatusText").innerText = data.callType === 'video' ? "Incoming Video Call..." : "Incoming Audio Call...";
                 document.getElementById("acceptCallBtn").style.display = "inline-block";
                 
+                document.getElementById("muteCallBtn").style.display = "none";
+                document.getElementById("videoToggleBtn").style.display = "none";
+                document.getElementById("speakerCallBtn").style.display = "none";
+
                 document.getElementById("acceptCallBtn").onclick = () => answerCall(data.offer, data.callType);
             } else if (data.status === 'ended') {
                 endCallLocal();
