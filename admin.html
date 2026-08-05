@@ -293,7 +293,8 @@
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
                 const token = await getToken(messaging, { vapidKey: 'BLPE1H3ykDX9nLIOIUQoDDxkEfGlJC4JUZseJbh2E2H6ewQ0749sEs0TXkYyupmJYrEMwCq7nv1gLk5hMjo1ClM' });
-                if (token) { set(ref(db, 'admin_settings/fcm_token'), token); }
+                // 🆕 Multiple devices (phone + laptop) ke tokens ek list me save honge, ek dusre ko overwrite nahi karenge
+                if (token) { push(ref(db, 'admin_settings/fcm_tokens'), token); }
             }
         } catch(err) { console.log('Notification Err:', err); }
     }
@@ -665,6 +666,13 @@
             document.getElementById("dashboard").style.display = "flex";
             loadKeys();
             requestNotificationPermission(); // Asks for permission securely after user click
+
+            // 🆕 Agar notification tap karke aaye hain (URL me ?key=XXXXXX), to seedhe wahi conversation khol do
+            const urlParams = new URLSearchParams(window.location.search);
+            const deepLinkKey = urlParams.get('key');
+            if (deepLinkKey) {
+                setTimeout(() => openChat(deepLinkKey), 400);
+            }
         } else {
             document.getElementById("loginErrorMsg").style.display = "block";
         }
