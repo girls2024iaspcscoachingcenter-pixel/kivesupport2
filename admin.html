@@ -236,7 +236,7 @@
     }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getDatabase, ref, set, push, onValue, serverTimestamp, update, onDisconnect, off, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, serverTimestamp, update, onDisconnect, off, remove, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
     import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js"; 
 
     const firebaseConfig = {
@@ -293,8 +293,14 @@
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
                 const token = await getToken(messaging, { vapidKey: 'BLPE1H3ykDX9nLIOIUQoDDxkEfGlJC4JUZseJbh2E2H6ewQ0749sEs0TXkYyupmJYrEMwCq7nv1gLk5hMjo1ClM' });
-                // 🆕 Multiple devices (phone + laptop) ke tokens ek list me save honge, ek dusre ko overwrite nahi karenge
-                if (token) { push(ref(db, 'admin_settings/fcm_tokens'), token); }
+                if (!token) return;
+
+                // 🆕 Pehले check karo ye token already saved to nahi hai (login-dohrane pe duplicate na bane)
+                const existingSnap = await get(ref(db, 'admin_settings/fcm_tokens'));
+                const existingTokens = existingSnap.exists() ? Object.values(existingSnap.val()) : [];
+                if (!existingTokens.includes(token)) {
+                    push(ref(db, 'admin_settings/fcm_tokens'), token);
+                }
             }
         } catch(err) { console.log('Notification Err:', err); }
     }
