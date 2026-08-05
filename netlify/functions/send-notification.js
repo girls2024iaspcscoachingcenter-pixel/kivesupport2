@@ -1,0 +1,79 @@
+// netlify/functions/send-notification.js
+// Ye function wahi "missing piece" hai jo actually FCM ko bolta hai
+// ki registered token(s) pe push notification bhej do.
+//
+// Trigger hota hai: student jab "key" enter karke chat shuru kare, ya
+// koi bhi message/media bheje.
+
+const admin = require('firebase-admin');
+
+// Firebase Admin SDK - sirf ek baar initialize hoga (cold start pe)
+if (!admin.apps.length) {
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'https://livesupports-65142-default-rtdb.firebaseio.com'
+  });
+}
+
+exports.handler = async function (event) {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
+  try {
+    const { key, message, type } = JSON.parse(event.body || '{}');
+    if (!key) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'key is required' }) };
+    }
+
+    const db = admin.database();
+
+    // Registered admin devices (phone/laptop) ke saare FCM tokens uthao
+    const tokensSnap = await db.ref('admin_settings/fcm_tokens').once('value');
+    const tokensObj = tokensSnap.val() || {};
+    const tokenEntries = Object.entries(tokensObj); // [ [pushId, token], ... ]
+
+    if (tokenEntries.length === 0) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ sent: 0, note: 'Abhi koi admin device registered nahi hai (notification permission allow nahi hui)' })
+      };
+    }
+
+    const title = type === 'new_session'
+      ? `🆕 Naya Student (Key: ${key})`
+      : `💬 New Message (Key: ${key})`;
+
+    const body = message && message.trim() ? message : 'Student ne chat shuru ki hai';
+
+    const messagePayload = {
+      notification: { title, body },
+      data: {
+        key: String(key),
+        click_action: `/admin.html?key=${key}`
+      },
+      tokens: tokenEntries.map(([, token]) => token)
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(messagePayload);
+
+    // Expired/invalid tokens ko Firebase se saaf kar do taaki list saaf rahe
+    const removals = [];
+    response.responses.forEach((res, idx) => {
+      if (!res.success) {
+        const [pushId] = tokenEntries[idx];
+        removals.push(db.ref('admin_settings/fcm_tokens/' + pushId).remove());
+      }
+    });
+    await Promise.all(removals);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ sent: response.successCount, failed: response.failureCount })
+    };
+  } catch (err) {
+    console.error('send-notification error:', err);
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  }
+};
